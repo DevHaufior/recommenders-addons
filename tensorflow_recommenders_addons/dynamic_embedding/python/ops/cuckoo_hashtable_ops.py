@@ -100,7 +100,7 @@ class CuckooHashTable(LookupInterface):
       self._shared_name = "table_%d" % (ops.uid(),)
     super(CuckooHashTable, self).__init__(key_dtype, value_dtype)
 
-    self._resource_handle = self._create_resource()
+    self._resource_handle = self._create_resource()  # todo 创建hash表
     if checkpoint:
       _ = CuckooHashTable._Saveable(self, name)
       if not context.executing_eagerly():
@@ -131,7 +131,7 @@ class CuckooHashTable(LookupInterface):
         name=self._name,
     )
 
-    if context.executing_eagerly():
+    if context.executing_eagerly():  # todo 很奇怪，为什么不需要table_name?
       self._table_name = None
     else:
       self._table_name = table_ref.op.name.split("/")[-1]

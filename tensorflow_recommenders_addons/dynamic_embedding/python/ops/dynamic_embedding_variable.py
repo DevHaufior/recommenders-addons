@@ -229,20 +229,20 @@ class Variable(trackable.TrackableResource):
 
     self._tables = []
     self.size_ops = []
-    self.shard_num = len(self.devices)
+    self.shard_num = len(self.devices) # todo 根据设备个数确定shardnum
     self.init_size = int(init_size)
     if restrict_policy is not None:
       if not issubclass(restrict_policy, de.RestrictPolicy):
         raise TypeError('restrict_policy must be subclass of RestrictPolicy.')
-      self._restrict_policy = restrict_policy(self)
+      self._restrict_policy = restrict_policy(self)  # todo 之后再看看
     else:
       self._restrict_policy = None
 
-    key_dtype_list = [dtypes.int32, dtypes.int64, dtypes.string]
+    key_dtype_list = [dtypes.int32, dtypes.int64, dtypes.string]  # todo 默认支持的key类型
     value_dtype_list = [
         dtypes.int32, dtypes.int64, dtypes.bool, dtypes.float32, dtypes.float64,
         dtypes.half, dtypes.int8, dtypes.string
-    ]
+    ]  # todo 默认支持的value类型
     if "GPU" in self.devices[0].upper():
       key_dtype_list = [dtypes.int64]
       value_dtype_list = [
@@ -275,10 +275,10 @@ class Variable(trackable.TrackableResource):
             self._tables.append(mht)
     super(Variable, self).__init__()
 
-    ops.add_to_collection(de.GraphKeys.DYNAMIC_EMBEDDING_VARIABLES, self)
+    ops.add_to_collection(de.GraphKeys.DYNAMIC_EMBEDDING_VARIABLES, self)  # todo 收集 dynamic variable
     if trainable:
       ops.add_to_collections(de.GraphKeys.TRAINABLE_DYNAMIC_EMBEDDING_VARIABLES,
-                             self)
+                             self)  # todo 收集dynamic 变量
 
   @property
   def tables(self):
@@ -435,7 +435,7 @@ class Variable(trackable.TrackableResource):
         """
     partition_index = self.partition_fn(keys, self.shard_num)
     keys_partitions, keys_indices = make_partition(keys, partition_index,
-                                                   self.shard_num)
+                                                   self.shard_num)  # todo 按shard_num将key做partition
 
     ops_ = []
     for idx in range(len(self.devices)):
@@ -449,8 +449,8 @@ class Variable(trackable.TrackableResource):
             keys_partitions[idx],
             dynamic_default_values=dynamic_default_values,
             name=name,
-        ))
-    result = _stitch(ops_, keys_indices)
+        ))  # todo 每个表上查找对应表上的keys
+    result = _stitch(ops_, keys_indices)  # todo 还原原来的顺序
 
     return result
 
@@ -533,7 +533,7 @@ def get_variable(
       value_dtype: the type of the value tensors.
       dim: the length of the value array for each key.
       devices: the list of devices holding the tables.
-        One table will be created on each device.
+        One table will be created on each device. todo 一个device对应一个table
       partitioner: partition function of keys,
         return the partition index for each key.
 

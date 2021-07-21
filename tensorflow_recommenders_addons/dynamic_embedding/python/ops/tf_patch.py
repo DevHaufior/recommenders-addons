@@ -222,3 +222,6 @@ def patch_on_tf():
   optimizer._get_processor = _get_processor
   slot_creator._create_slot_var = _create_slot_var
   device_setter._ReplicaDeviceChooser.device_function = device_function
+
+
+#  todo 或许是非keras系的优化器才需要做这样的处理， tf.keras.optimizers.Adam(learning_rate=0.001)

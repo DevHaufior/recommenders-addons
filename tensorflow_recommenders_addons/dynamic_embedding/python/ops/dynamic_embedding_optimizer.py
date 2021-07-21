@@ -69,7 +69,7 @@ def DynamicEmbeddingOptimizer(self):
         raise NotImplementedError("Trying to update a Tensor ", var)
 
       apply_kwargs = {}
-      if not isinstance(var, de.TrainableWrapper):
+      if not isinstance(var, de.TrainableWrapper):  # todo 常规变量
         if isinstance(grad, ops.IndexedSlices):
           if var.constraint is not None:
             raise RuntimeError(
@@ -87,7 +87,7 @@ def DynamicEmbeddingOptimizer(self):
             return var.assign(var.constraint(var))
         else:
           return update_op
-      else:
+      else:  # todo TrainableWrapper类型的变量
         with ops.colocate_with(None, ignore_existing=True):
           _slots = [self.get_slot(var, _s) for _s in self.get_slot_names()]
           # Add the optimizer slots to restricting list.
@@ -95,7 +95,7 @@ def DynamicEmbeddingOptimizer(self):
             var.params.restrict_policy._track_optimizer_slots(_slots)
 
           with ops.control_dependencies([grad]):
-            _before = [var.read_value()] + [_s.read_value() for _s in _slots]
+            _before = [var.read_value()] + [_s.read_value() for _s in _slots]  # todo 从TrainableWrapper中读取值
           if isinstance(grad, ops.IndexedSlices):
             if var.constraint is not None:
               raise RuntimeError(
@@ -104,23 +104,23 @@ def DynamicEmbeddingOptimizer(self):
               apply_kwargs["apply_state"] = apply_state
             with ops.control_dependencies(_before):
               _apply_op = self._resource_apply_sparse_duplicate_indices(
-                  grad.values, var, grad.indices, **apply_kwargs)
+                  grad.values, var, grad.indices, **apply_kwargs)  # todo 正常的参数更新操作
             with ops.control_dependencies([_apply_op]):
               _after = control_flow_ops.group([var.update_op()] +
-                                              [_s.update_op() for _s in _slots])
+                                              [_s.update_op() for _s in _slots])  # todo 对TrainableWrapper对update_op操作，写回hash table？
               return _after
 
           if "apply_state" in self._dense_apply_args:
             apply_kwargs["apply_state"] = apply_state
           with ops.control_dependencies(_before):
-            update_op = self._resource_apply_dense(grad, var, **apply_kwargs)
+            update_op = self._resource_apply_dense(grad, var, **apply_kwargs)  # todo 正常的参数更新操作
           if var.constraint is not None:
             with ops.control_dependencies([update_op]):
               return var.assign(var.constraint(var))
           else:
             with ops.control_dependencies([update_op]):
               _after = control_flow_ops.group([var.update_op()] +
-                                              [_s.update_op() for _s in _slots])
+                                              [_s.update_op() for _s in _slots])  # todo 对TrainableWrapper对update_op操作，写回hash table？
             return _after
 
     update_ops = []
@@ -170,7 +170,7 @@ def DynamicEmbeddingOptimizer(self):
       with strategy.extended.colocate_vars_with(var):
         if isinstance(var, de.TrainableWrapper):
           weight = de.create_slots(var, initial_value, slot_name,
-                                   var._shared_name)
+                                   var._shared_name)  # todo 对于TrainableWrapper类型的参数变量，为优化它需要的额外变量，如adam中的m/v等
         else:
           weight = variables.Variable(
               name="%s/%s" % (
@@ -180,7 +180,7 @@ def DynamicEmbeddingOptimizer(self):
               dtype=var.dtype,
               trainable=False,
               initial_value=initial_value,
-          )
+          )  # todo 普通参数变量，为优化它需要的额外变量，如adam中的m/v等
       backend.track_variable(weight)
       slot_dict[slot_name] = weight
       self._restore_slot_variable(slot_name=slot_name,

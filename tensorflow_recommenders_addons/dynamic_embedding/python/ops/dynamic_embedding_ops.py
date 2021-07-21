@@ -341,7 +341,7 @@ class TrainableWrapper(resource_variable_ops.ResourceVariable):
       )
 
   def update_op(self):
-    update_param_op = self.params.upsert(self.ids, self.read_value(False))
+    update_param_op = self.params.upsert(self.ids, self.read_value(False))  # todo 此时read_value的结果已经是被更新后的参数值了
     if self.params.restrict_policy is not None:
       update_status_op = self.params.restrict_policy.apply_update(self.ids)
       return control_flow_ops.group([update_param_op, update_status_op])
@@ -351,7 +351,7 @@ class TrainableWrapper(resource_variable_ops.ResourceVariable):
     return self.params.size()
 
   def _read_variable_op(self, do_prefetch=True):
-    resource_variable_ops.variable_accessed(self)
+    resource_variable_ops.variable_accessed(self)  # todo tape记录，所以这个是可以在with tf.GradientTape() as tape:记录以便做梯度更新的核心原因？？？
     if self.model_mode == "train":
       if do_prefetch:
         with ops.control_dependencies([
@@ -888,7 +888,7 @@ def _prune_invalid_weights(sparse_ids, sparse_weights):
     sparse_weights = sparse_ops.sparse_retain(sparse_weights, is_weights_valid)
   return sparse_ids, sparse_weights
 
-
+#  todo 这里还有这个需要注意的地方。。。。
 class ModelMode(object):
   """The global config of model modes.
 
