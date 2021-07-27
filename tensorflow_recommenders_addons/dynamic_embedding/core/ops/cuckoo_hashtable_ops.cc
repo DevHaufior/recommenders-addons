@@ -229,6 +229,7 @@ REGISTER_OP(PREFIX_OP_NAME(CuckooHashTableImport))
       return Status::OK();
     });
 
+// todo 创建hash table的op
 REGISTER_OP(PREFIX_OP_NAME(CuckooHashTableOfTensors))
     .Output("table_handle: resource")
     .Attr("container: string = ''")

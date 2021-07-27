@@ -131,7 +131,7 @@ class CuckooHashTable(LookupInterface):
         name=self._name,
     )
 
-    if context.executing_eagerly():  # todo 很奇怪，为什么不需要table_name?
+    if context.executing_eagerly():  # todo 很奇怪，为什么不需要table_name，直接默认用use_node_name_sharing以某种方式用于查找表了
       self._table_name = None
     else:
       self._table_name = table_ref.op.name.split("/")[-1]
@@ -309,7 +309,7 @@ class CuckooHashTable(LookupInterface):
     """SaveableObject implementation for CuckooHashTable."""
 
     def __init__(self, table, name, full_name=""):
-      tensors = table.export()
+      tensors = table.export()  # todo 导出hashtable的keys和values
       specs = [
           BaseSaverBuilder.SaveSpec(tensors[0], "", name + "-keys"),
           BaseSaverBuilder.SaveSpec(tensors[1], "", name + "-values"),
@@ -327,7 +327,7 @@ class CuckooHashTable(LookupInterface):
               self.op.resource_handle,
               restored_tensors[0],
               restored_tensors[1],
-          )
+          )  # todo 用来恢复hashtable的key和values
 
 
 ops.NotDifferentiable(prefix_op_name("CuckooHashTableOfTensors"))

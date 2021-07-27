@@ -46,7 +46,7 @@ class HashTableOp : public OpKernel {
     if (ctx->output_type(0) == DT_RESOURCE) {
       OP_REQUIRES_OK(ctx, ctx->allocate_persistent(tensorflow::DT_RESOURCE,
                                                    tensorflow::TensorShape({}),
-                                                   &table_handle_, nullptr));
+                                                   &table_handle_, nullptr)); // todo
     } else {
       OP_REQUIRES_OK(ctx, ctx->allocate_persistent(tensorflow::DT_STRING,
                                                    tensorflow::TensorShape({2}),
@@ -93,11 +93,11 @@ class HashTableOp : public OpKernel {
     if (ctx->expected_output_dtype(0) == DT_RESOURCE) {
       if (!table_handle_set_) {
         auto h =
-            table_handle_.AccessTensor(ctx)->template scalar<ResourceHandle>();
+            table_handle_.AccessTensor(ctx)->template scalar<ResourceHandle>(); // todo 将创建的hashtable信息写入ResourceHandle，之后如HashTableFindOp的各种Op，取hashtable信息就是通过输入的ResourceHandle
         h() = MakeResourceHandle<LookupInterface>(ctx, cinfo_.container(),
                                                   cinfo_.name());
       }
-      ctx->set_output(0, *table_handle_.AccessTensor(ctx));
+      ctx->set_output(0, *table_handle_.AccessTensor(ctx)); // todo 设置ResourceHandle为输出tensor
     } else {
       if (!table_handle_set_) {
         auto h = table_handle_.AccessTensor(ctx)->template flat<tstring>();
